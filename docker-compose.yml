@@ -1,0 +1,32 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cv_user
+      POSTGRES_PASSWORD: motdepasse123456789%
+      POSTGRES_DB: cv_distributor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cv_user"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      POSTGRES_HOST: db
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  pgdata:
